@@ -450,6 +450,7 @@ class Logging(LiteLLMLoggingBaseClass):
                 isinstance(callback, str)
                 and callback in litellm._known_custom_logger_compatible_callbacks
             ):
+                #TODO:AG:Creating classes for each callback
                 callback_class = _init_custom_logger_compatible_class(
                     callback, internal_usage_cache=None, llm_router=None  # type: ignore
                 )
@@ -1912,6 +1913,7 @@ class Logging(LiteLLMLoggingBaseClass):
                 result=result,
             )
             ## LOGGING HOOK ##
+            #TODO:AG:handl cases of custom-logger
             for callback in callbacks:
                 if isinstance(callback, CustomLogger):
                     self.model_call_details, result = callback.logging_hook(
@@ -2067,6 +2069,7 @@ class Logging(LiteLLMLoggingBaseClass):
                             print_verbose=print_verbose,
                             kwargs=kwargs,
                         )
+                    #TODO:AG: this is this place where our action comes into play ?
                     if callback == "langfuse":
                         global langFuseLogger
                         print_verbose("reaches langfuse for success logging!")
