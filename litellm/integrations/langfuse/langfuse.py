@@ -105,9 +105,7 @@ class LangFuseLogger:
         # Instance variables
         self.secret_key = langfuse_secret or os.getenv("LANGFUSE_SECRET_KEY")
         self.public_key = langfuse_public_key or os.getenv("LANGFUSE_PUBLIC_KEY")
-        self.langfuse_host = langfuse_host or os.getenv(
-            "LANGFUSE_HOST", "https://cloud.langfuse.com"
-        )
+        self.langfuse_host = langfuse_host or os.getenv("LANGFUSE_HOST")
         missing = []
         if not self.public_key:
             missing.append("LANGFUSE_PUBLIC_KEY")
