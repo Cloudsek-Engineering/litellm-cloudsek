@@ -93,7 +93,7 @@ class OpenAIImageEditConfig(BaseImageEditConfig):
         """
         if prompt is None:
             raise ValueError("OpenAI image edit requires a prompt.")
-        
+
         request = ImageEditRequestParams(
             model=model,
             image=image,

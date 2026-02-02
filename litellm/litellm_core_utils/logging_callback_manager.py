@@ -1,4 +1,16 @@
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 import litellm
 from litellm._logging import verbose_logger
@@ -13,6 +25,15 @@ else:
     _custom_logger_compatible_callbacks_literal = str
 
 _generic_api_logger_cache: Dict[str, GenericAPILogger] = {}
+CallbackListEntry = TypeVar(
+    "CallbackListEntry",
+    bound=Union[
+        Callable[..., Any],
+        _custom_logger_compatible_callbacks_literal,
+        CustomLogger,
+        str,
+    ],
+)
 
 
 class LoggingCallbackManager:
@@ -260,6 +281,7 @@ class LoggingCallbackManager:
 
         if ensure_langfuse:
             self._ensure_langfuse_present(parent_list)
+
     def _add_callback_function_to_list(
         self, callback: Callable, parent_list: List[Union[CustomLogger, Callable, str]]
     ):
@@ -298,7 +320,7 @@ class LoggingCallbackManager:
 
     @staticmethod
     def _ensure_langfuse_present(
-        callback_list: List[Union[CustomLogger, Callable, str]]
+        callback_list: List[CallbackListEntry],
     ) -> None:
         """
         Mutate callback list to guarantee 'langfuse' is present (case-insensitive).
@@ -306,11 +328,9 @@ class LoggingCallbackManager:
         - Keeps existing entries intact.
         - Adds the string 'langfuse' only if no string entry already matches.
         """
-        string_callbacks = [
-            cb.lower() for cb in callback_list if isinstance(cb, str)
-        ]
+        string_callbacks = [cb.lower() for cb in callback_list if isinstance(cb, str)]
         if "langfuse" not in string_callbacks:
-            callback_list.append("langfuse")
+            callback_list.append(cast(CallbackListEntry, "langfuse"))
 
     def _get_custom_logger_key(self, custom_logger: CustomLogger):
         """
@@ -342,7 +362,16 @@ class LoggingCallbackManager:
         litellm._async_failure_callback = []
         litellm.callbacks = []
 
-    def _get_all_callbacks(self) -> List[Union[CustomLogger, Callable, str]]:
+    def _get_all_callbacks(
+        self,
+    ) -> List[
+        Union[
+            Callable[..., Any],
+            _custom_logger_compatible_callbacks_literal,
+            CustomLogger,
+            str,
+        ]
+    ]:
         """
         Get all callbacks from litellm.callbacks, litellm.success_callback, litellm.failure_callback, litellm._async_success_callback, litellm._async_failure_callback
         """

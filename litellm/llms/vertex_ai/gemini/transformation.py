@@ -86,7 +86,7 @@ def _convert_detail_to_media_resolution_enum(
 
 
 def _process_gemini_image(
-    image_url: str, 
+    image_url: str,
     format: Optional[str] = None,
     media_resolution_enum: Optional[Dict[str, str]] = None,
     model: Optional[str] = None,
@@ -114,9 +114,10 @@ def _process_gemini_image(
                 mime_type = format
             file_data = FileDataType(mime_type=mime_type, file_uri=image_url)
             part: PartType = {"file_data": file_data}
-            
+
             if media_resolution_enum is not None and model is not None:
                 from .vertex_and_google_ai_studio_gemini import VertexGeminiConfig
+
                 if VertexGeminiConfig._is_gemini_3_or_newer(model):
                     part_dict = dict(part)
                     part_dict["media_resolution"] = media_resolution_enum
@@ -129,9 +130,10 @@ def _process_gemini_image(
         ):
             file_data = FileDataType(mime_type=image_type, file_uri=image_url)
             part = {"file_data": file_data}
-            
+
             if media_resolution_enum is not None and model is not None:
                 from .vertex_and_google_ai_studio_gemini import VertexGeminiConfig
+
                 if VertexGeminiConfig._is_gemini_3_or_newer(model):
                     part_dict = dict(part)
                     part_dict["media_resolution"] = media_resolution_enum
@@ -140,11 +142,12 @@ def _process_gemini_image(
         elif "http://" in image_url or "https://" in image_url or "base64" in image_url:
             image = convert_to_anthropic_image_obj(image_url, format=format)
             _blob: BlobType = {"data": image["data"], "mime_type": image["media_type"]}
-            
+
             part = {"inline_data": cast(BlobType, _blob)}
-            
+
             if media_resolution_enum is not None and model is not None:
                 from .vertex_and_google_ai_studio_gemini import VertexGeminiConfig
+
                 if VertexGeminiConfig._is_gemini_3_or_newer(model):
                     part_dict = dict(part)
                     part_dict["media_resolution"] = media_resolution_enum
@@ -260,11 +263,13 @@ def _gemini_convert_messages_with_history(  # noqa: PLR0915
                                 image_url = img_element["image_url"]["url"]
                                 format = img_element["image_url"].get("format")
                                 detail = img_element["image_url"].get("detail")
-                                media_resolution_enum = _convert_detail_to_media_resolution_enum(detail)
+                                media_resolution_enum = (
+                                    _convert_detail_to_media_resolution_enum(detail)
+                                )
                             else:
                                 image_url = img_element["image_url"]
                             _part = _process_gemini_image(
-                                image_url=image_url, 
+                                image_url=image_url,
                                 format=format,
                                 media_resolution_enum=media_resolution_enum,
                                 model=model,
@@ -307,7 +312,7 @@ def _gemini_convert_messages_with_history(  # noqa: PLR0915
                                 )
                             try:
                                 _part = _process_gemini_image(
-                                    image_url=passed_file, 
+                                    image_url=passed_file,
                                     format=format,
                                     model=model,
                                 )
@@ -319,10 +324,7 @@ def _gemini_convert_messages_with_history(  # noqa: PLR0915
                                     )
                                 )
                     user_content.extend(_parts)
-                elif (
-                    _message_content is not None
-                    and isinstance(_message_content, str)
-                ):
+                elif _message_content is not None and isinstance(_message_content, str):
                     _part = PartType(text=_message_content)
                     user_content.append(_part)
 
@@ -390,19 +392,26 @@ def _gemini_convert_messages_with_history(  # noqa: PLR0915
                                 _parts.append(_part)
 
                     assistant_content.extend(_parts)
-                elif (
-                    _message_content is not None
-                    and isinstance(_message_content, str)
-                ):
+                elif _message_content is not None and isinstance(_message_content, str):
                     assistant_text = _message_content
                     # Check if message has thought_signatures in provider_specific_fields
-                    provider_specific_fields = assistant_msg.get("provider_specific_fields")
+                    provider_specific_fields = assistant_msg.get(
+                        "provider_specific_fields"
+                    )
                     thought_signatures = None
-                    if provider_specific_fields and isinstance(provider_specific_fields, dict):
-                        thought_signatures = provider_specific_fields.get("thought_signatures")
-                    
+                    if provider_specific_fields and isinstance(
+                        provider_specific_fields, dict
+                    ):
+                        thought_signatures = provider_specific_fields.get(
+                            "thought_signatures"
+                        )
+
                     # If we have thought signatures, add them to the part
-                    if thought_signatures and isinstance(thought_signatures, list) and len(thought_signatures) > 0:
+                    if (
+                        thought_signatures
+                        and isinstance(thought_signatures, list)
+                        and len(thought_signatures) > 0
+                    ):
                         # Use the first signature for the text part (Gemini expects one signature per part)
                         assistant_content.append(PartType(text=assistant_text, thoughtSignature=thought_signatures[0]))  # type: ignore
                     else:
@@ -534,7 +543,10 @@ def _transform_request_body(
             "safety_settings", None
         )  # type: ignore
         if safety_settings is None:
-            safety_settings = [dict(setting) for setting in DEFAULT_SAFETY_SETTINGS]
+            safety_settings = [
+                cast(SafetSettingsConfig, dict(setting))
+                for setting in DEFAULT_SAFETY_SETTINGS
+            ]
         config_fields = GenerationConfig.__annotations__.keys()
 
         # If the LiteLLM client sends Gemini-supported parameter "labels", add it
@@ -549,7 +561,9 @@ def _transform_request_body(
                 labels = {k: v for k, v in rm.items() if isinstance(v, str)}
 
         filtered_params = {
-            k: v for k, v in optional_params.items() if _get_equivalent_key(k, set(config_fields))
+            k: v
+            for k, v in optional_params.items()
+            if _get_equivalent_key(k, set(config_fields))
         }
 
         generation_config: Optional[GenerationConfig] = GenerationConfig(
@@ -598,9 +612,9 @@ def sync_transform_request_body(
     context_caching_endpoints = ContextCachingEndpoints()
 
     (
-    messages,
-    optional_params,
-    cached_content,
+        messages,
+        optional_params,
+        cached_content,
     ) = context_caching_endpoints.check_and_create_cache(
         messages=messages,
         optional_params=optional_params,
@@ -617,7 +631,6 @@ def sync_transform_request_body(
         vertex_location=vertex_location,
         vertex_auth_header=vertex_auth_header,
     )
-
 
     return _transform_request_body(
         messages=messages,
@@ -650,9 +663,9 @@ async def async_transform_request_body(
     context_caching_endpoints = ContextCachingEndpoints()
 
     (
-    messages,
-    optional_params,
-    cached_content,
+        messages,
+        optional_params,
+        cached_content,
     ) = await context_caching_endpoints.async_check_and_create_cache(
         messages=messages,
         optional_params=optional_params,
