@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "litellm"
-version = "1.81.0"
+name = "litellm-cloudsek"
+version = "0.1.0"
 description = "Library to easily interface with LLM API providers"
-authors = ["BerriAI"]
+authors = ["BerriAI","CloudSek Engineering <engineering@cloudsek.com>"]
 license = "MIT"
 readme = "README.md"
 packages = [
@@ -155,6 +155,8 @@ opentelemetry-sdk = "1.25.0"
 opentelemetry-exporter-otlp = "1.25.0"
 langfuse = "^2.45.0"
 fastapi-offline = "^1.7.3"
+build = "^1.4.0"
+twine = "^6.2.0"
 
 [tool.poetry.group.proxy-dev.dependencies]
 prisma = "0.11.0"
