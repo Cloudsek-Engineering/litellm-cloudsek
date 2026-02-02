@@ -274,9 +274,11 @@ def initialize_callbacks_on_proxy(  # noqa: PLR0915
                     WebSearchInterceptionLogger,
                 )
 
-                websearch_interception_obj = WebSearchInterceptionLogger.initialize_from_proxy_config(
-                    litellm_settings=litellm_settings,
-                    callback_specific_params=callback_specific_params,
+                websearch_interception_obj = (
+                    WebSearchInterceptionLogger.initialize_from_proxy_config(
+                        litellm_settings=litellm_settings,
+                        callback_specific_params=callback_specific_params,
+                    )
                 )
                 imported_list.append(websearch_interception_obj)
             elif isinstance(callback, CustomLogger):
@@ -353,17 +355,17 @@ def get_remaining_tokens_and_requests_from_request_data(data: Dict) -> Dict[str,
     remaining_requests_variable_name = f"litellm-key-remaining-requests-{model_group}"
     remaining_requests = _metadata.get(remaining_requests_variable_name, None)
     if remaining_requests:
-        headers[f"x-litellm-key-remaining-requests-{h11_model_group_name}"] = (
-            remaining_requests
-        )
+        headers[
+            f"x-litellm-key-remaining-requests-{h11_model_group_name}"
+        ] = remaining_requests
 
     # Remaining Tokens
     remaining_tokens_variable_name = f"litellm-key-remaining-tokens-{model_group}"
     remaining_tokens = _metadata.get(remaining_tokens_variable_name, None)
     if remaining_tokens:
-        headers[f"x-litellm-key-remaining-tokens-{h11_model_group_name}"] = (
-            remaining_tokens
-        )
+        headers[
+            f"x-litellm-key-remaining-tokens-{h11_model_group_name}"
+        ] = remaining_tokens
 
     return headers
 
@@ -412,9 +414,9 @@ def add_guardrail_response_to_standard_logging_object(
 ):
     if litellm_logging_obj is None:
         return
-    standard_logging_object: Optional[StandardLoggingPayload] = (
-        litellm_logging_obj.model_call_details.get("standard_logging_object")
-    )
+    standard_logging_object: Optional[
+        StandardLoggingPayload
+    ] = litellm_logging_obj.model_call_details.get("standard_logging_object")
     if standard_logging_object is None:
         return
     guardrail_information = standard_logging_object.get("guardrail_information", [])
@@ -443,7 +445,9 @@ def get_metadata_variable_name_from_kwargs(
     return "litellm_metadata" if "litellm_metadata" in kwargs else "metadata"
 
 
-def process_callback(_callback: str, callback_type: str, environment_variables: dict) -> dict:
+def process_callback(
+    _callback: str, callback_type: str, environment_variables: dict
+) -> dict:
     """Process a single callback and return its data with environment variables"""
     env_vars = CustomLogger.get_callback_env_vars(_callback)
 
@@ -455,12 +459,36 @@ def process_callback(_callback: str, callback_type: str, environment_variables: 
         else:
             env_vars_dict[_var] = env_variable
 
-    return {
-        "name": _callback,
-        "variables": env_vars_dict,
-        "type": callback_type
-    }
+    return {"name": _callback, "variables": env_vars_dict, "type": callback_type}
+
+
 def normalize_callback_names(callbacks: Iterable[Any]) -> List[Any]:
     if callbacks is None:
         return []
     return [c.lower() if isinstance(c, str) else c for c in callbacks]
+
+
+def ensure_langfuse_present(
+    callbacks: Optional[Iterable[Any] | str],
+) -> List[Any]:
+    """
+    Ensure the returned callback list always contains 'langfuse'.
+
+    - Accepts None, a single string callback, or any iterable of callbacks.
+    - Preserves existing callbacks (including callables) and appends langfuse
+      only when it's not already present (case-insensitive).
+    """
+    if callbacks is None:
+        callback_list: List[Any] = []
+    elif isinstance(callbacks, str):
+        callback_list = [callbacks]
+    else:
+        callback_list = list(callbacks)
+
+    string_callbacks = [
+        callback.lower() for callback in callback_list if isinstance(callback, str)
+    ]
+    if "langfuse" not in string_callbacks:
+        callback_list.append("langfuse")
+
+    return callback_list
