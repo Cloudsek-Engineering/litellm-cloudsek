@@ -82,7 +82,7 @@ test:
 	poetry run pytest tests/
 
 test-unit: install-test-deps
-	poetry run pytest tests/test_litellm -x -vv -n 4
+	poetry run pytest tests/test_litellm -x -vv -n 10
 
 test-integration:
 	poetry run pytest tests/ -k "not test_litellm"

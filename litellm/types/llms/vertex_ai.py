@@ -136,6 +136,7 @@ HarmCategory = Literal[
     "HARM_CATEGORY_DANGEROUS_CONTENT",
     "HARM_CATEGORY_HARASSMENT",
     "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+    "HARM_CATEGORY_CIVIC_INTEGRITY",
 ]
 HarmBlockThreshold = Literal[
     "HARM_BLOCK_THRESHOLD_UNSPECIFIED",
@@ -143,6 +144,7 @@ HarmBlockThreshold = Literal[
     "BLOCK_MEDIUM_AND_ABOVE",
     "BLOCK_ONLY_HIGH",
     "BLOCK_NONE",
+    "OFF",
 ]
 HarmBlockMethod = Literal["HARM_BLOCK_METHOD_UNSPECIFIED", "SEVERITY", "PROBABILITY"]
 
@@ -174,7 +176,9 @@ class GeminiThinkingConfig(TypedDict, total=False):
 
 GeminiResponseModalities = Literal["TEXT", "IMAGE", "AUDIO", "VIDEO"]
 
-GeminiImageAspectRatio = Literal["1:1", "2:3", "3:2", "3:4", "4:3", "9:16", "16:9", "21:9"]
+GeminiImageAspectRatio = Literal[
+    "1:1", "2:3", "3:2", "3:4", "4:3", "9:16", "16:9", "21:9"
+]
 
 GeminiImageSize = Literal["1K", "2K", "4K"]
 
@@ -218,6 +222,7 @@ class GenerationConfig(TypedDict, total=False):
 
 class VertexToolName(str, Enum):
     """Enum for Vertex AI tool field names."""
+
     GOOGLE_SEARCH = "googleSearch"
     GOOGLE_SEARCH_RETRIEVAL = "googleSearchRetrieval"
     ENTERPRISE_WEB_SEARCH = "enterpriseWebSearch"
@@ -263,7 +268,9 @@ class UsageMetadata(TypedDict, total=False):
     cacheTokensDetails: List[PromptTokensDetails]
     thoughtsTokenCount: int
     responseTokensDetails: List[PromptTokensDetails]
-    candidatesTokensDetails: List[PromptTokensDetails]  # Alternative key name used in some responses
+    candidatesTokensDetails: List[
+        PromptTokensDetails
+    ]  # Alternative key name used in some responses
 
 
 class TokenCountDetailsResponse(TypedDict):

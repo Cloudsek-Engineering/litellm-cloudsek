@@ -78,6 +78,9 @@ grpcio = [
 packaging = "<25.0,>=23.2"
 redis = "<=7.1"
 langfuse = "<3"
+google-genai = "*"
+google-cloud-aiplatform = "*"
+google-auth = "*"
 
 [tool.poetry.extras]
 proxy = [
