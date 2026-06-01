@@ -1,0 +1,16 @@
+name: litellm-cloudsek
+id: ari:cloud:compass:d042a799-1fb5-4262-a947-3022c828031e:component/9f22962c-d6e4-4c16-b597-bd6d490cf248/f8caa92b-7e3b-496f-a61d-220ece4693e1
+description: Python SDK, Proxy Server (AI Gateway) to call 100+ LLM APIs in OpenAI (or native) format, with cost tracking, guardrails, loadbalancing and logging. [Bedrock, Azure, OpenAI, VertexAI, Cohere, Anthropic, Sagemaker, HuggingFace, VLLM, NVIDIA NIM]
+configVersion: 1
+typeId: SERVICE
+fields:
+  tier: 4
+links:
+  - name: null
+    type: REPOSITORY
+    url: https://github.com/Cloudsek-Engineering/litellm-cloudsek
+relationships:
+  DEPENDS_ON: []
+labels:
+  - source:github
+customFields: null
