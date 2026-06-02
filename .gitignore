@@ -4,6 +4,8 @@
 .env
 .claude
 .newenv
+test.ipynb
+google_application_credentials.json
 newenv/*
 litellm/proxy/myenv/*
 litellm_uuid.txt

@@ -106,9 +106,7 @@ def resolve_langfuse_credentials(
         )
         public_key = langfuse_public_key or os.getenv("LANGFUSE_PUBLIC_KEY")
 
-    resolved_host = langfuse_host or os.getenv(
-        "LANGFUSE_HOST", "https://cloud.langfuse.com"
-    )
+    resolved_host = langfuse_host or os.getenv("LANGFUSE_HOST")
 
     return public_key, secret_key, resolved_host
 
@@ -138,6 +136,7 @@ class LangFuseLogger:
                 allow_env_credentials=allow_env_credentials,
             )
         )
+        self._validate_credentials()
         if not (
             self.langfuse_host.startswith("http://")
             or self.langfuse_host.startswith("https://")
@@ -214,6 +213,21 @@ class LangFuseLogger:
             )
         else:
             self.upstream_langfuse = None
+
+    def _validate_credentials(self) -> None:
+        missing = [
+            name
+            for name, val in [
+                ("LANGFUSE_PUBLIC_KEY", self.public_key),
+                ("LANGFUSE_SECRET_KEY", self.secret_key),
+                ("LANGFUSE_HOST", self.langfuse_host),
+            ]
+            if not val
+        ]
+        if missing:
+            raise ValueError(
+                f"Missing required Langfuse configuration: {', '.join(missing)}"
+            )
 
     def safe_init_langfuse_client(self, parameters: dict) -> Langfuse:
         """

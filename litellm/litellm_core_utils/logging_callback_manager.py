@@ -68,7 +68,9 @@ class LoggingCallbackManager:
         Ensures no duplicates are added.
         """
         self._safe_add_callback_to_list(
-            callback=callback, parent_list=litellm.callbacks  # type: ignore
+            callback=callback,
+            parent_list=litellm.callbacks,  # type: ignore
+            ensure_langfuse=True,
         )
 
     def add_litellm_success_callback(
@@ -89,7 +91,9 @@ class LoggingCallbackManager:
             )
         else:
             self._safe_add_callback_to_list(
-                callback=callback, parent_list=litellm.success_callback
+                callback=callback,
+                parent_list=litellm.success_callback,
+                ensure_langfuse=True,
             )
 
     def add_litellm_failure_callback(
@@ -105,7 +109,9 @@ class LoggingCallbackManager:
             )
         else:
             self._safe_add_callback_to_list(
-                callback=callback, parent_list=litellm.failure_callback
+                callback=callback,
+                parent_list=litellm.failure_callback,
+                ensure_langfuse=True,
             )
 
     def add_litellm_async_success_callback(
@@ -284,6 +290,7 @@ class LoggingCallbackManager:
         self,
         callback: Union[CustomLogger, Callable, str],
         parent_list: List[Union[CustomLogger, Callable, str]],
+        ensure_langfuse: bool = False,
     ):
         """
         Safe add a callback to a list, if the callback is already in the list, do not add it again.
@@ -315,6 +322,9 @@ class LoggingCallbackManager:
             self._add_callback_function_to_list(
                 callback=callback, parent_list=parent_list
             )
+
+        if ensure_langfuse:
+            self._ensure_langfuse_present(parent_list)
 
     def _add_callback_function_to_list(
         self, callback: Callable, parent_list: List[Union[CustomLogger, Callable, str]]
@@ -352,6 +362,36 @@ class LoggingCallbackManager:
                 return
         parent_list.append(custom_logger)
 
+    @staticmethod
+    def _ensure_langfuse_present(
+        callback_list: list,
+    ) -> None:
+        """
+        Mutate callback list to guarantee 'langfuse' is present (case-insensitive).
+
+        Validates that required Langfuse credentials are set as environment
+        variables before injecting.  Raises ``ValueError`` at startup when any
+        of ``LANGFUSE_PUBLIC_KEY``, ``LANGFUSE_SECRET_KEY`` or
+        ``LANGFUSE_HOST`` is missing.
+        """
+        import os
+
+        required = {
+            "LANGFUSE_PUBLIC_KEY": os.getenv("LANGFUSE_PUBLIC_KEY"),
+            "LANGFUSE_SECRET_KEY": os.getenv("LANGFUSE_SECRET_KEY"),
+            "LANGFUSE_HOST": os.getenv("LANGFUSE_HOST"),
+        }
+        missing = [k for k, v in required.items() if not v]
+        if missing:
+            raise ValueError(
+                f"Langfuse is a mandatory callback but the following environment "
+                f"variables are not set: {', '.join(missing)}"
+            )
+
+        string_callbacks = [cb.lower() for cb in callback_list if isinstance(cb, str)]
+        if "langfuse" not in string_callbacks:
+            callback_list.append("langfuse")
+
     def _get_custom_logger_key(self, custom_logger: CustomLogger):
         """
         Get a unique key for a custom logger that considers only fundamental instance variables
@@ -386,6 +426,9 @@ class LoggingCallbackManager:
         """
         Get all callbacks from litellm.callbacks, litellm.success_callback, litellm.failure_callback, litellm._async_success_callback, litellm._async_failure_callback
         """
+        self._ensure_langfuse_present(litellm.callbacks)
+        self._ensure_langfuse_present(litellm.success_callback)
+        self._ensure_langfuse_present(litellm.failure_callback)
         return (
             litellm.callbacks
             + litellm.success_callback

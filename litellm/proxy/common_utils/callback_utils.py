@@ -550,3 +550,44 @@ def normalize_callback_names(callbacks: Iterable[Any]) -> List[Any]:
     if callbacks is None:
         return []
     return [c.lower() if isinstance(c, str) else c for c in callbacks]
+
+
+def ensure_langfuse_present(
+    callbacks: Optional[Iterable[Any] | str],
+) -> List[Any]:
+    """
+    Ensure the returned callback list always contains 'langfuse'.
+
+    Validates that required Langfuse credentials are set as environment
+    variables before injecting.  Raises ``ValueError`` at startup when any
+    of ``LANGFUSE_PUBLIC_KEY``, ``LANGFUSE_SECRET_KEY`` or ``LANGFUSE_HOST``
+    is missing.
+    """
+    import os
+
+    required = {
+        "LANGFUSE_PUBLIC_KEY": os.getenv("LANGFUSE_PUBLIC_KEY"),
+        "LANGFUSE_SECRET_KEY": os.getenv("LANGFUSE_SECRET_KEY"),
+        "LANGFUSE_HOST": os.getenv("LANGFUSE_HOST"),
+    }
+    missing = [k for k, v in required.items() if not v]
+    if missing:
+        raise ValueError(
+            f"Langfuse is a mandatory callback but the following environment "
+            f"variables are not set: {', '.join(missing)}"
+        )
+
+    if callbacks is None:
+        callback_list: List[Any] = []
+    elif isinstance(callbacks, str):
+        callback_list = [callbacks]
+    else:
+        callback_list = list(callbacks)
+
+    string_callbacks = [
+        callback.lower() for callback in callback_list if isinstance(callback, str)
+    ]
+    if "langfuse" not in string_callbacks:
+        callback_list.append("langfuse")
+
+    return callback_list

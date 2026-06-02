@@ -100,6 +100,7 @@ from litellm.proxy._types import (
 )
 from litellm.proxy.common_utils.cache_pydantic_utils import CacheCodec
 from litellm.proxy.common_utils.callback_utils import (
+    ensure_langfuse_present,
     normalize_callback_names,
     process_callback,
 )
@@ -3934,8 +3935,9 @@ class ProxyConfig:
                         **value
                     )
                 elif key == "callbacks":
+                    callbacks_with_langfuse = ensure_langfuse_present(value)
                     initialize_callbacks_on_proxy(
-                        value=value,
+                        value=callbacks_with_langfuse,
                         premium_user=premium_user,
                         config_file_path=config_file_path,
                         litellm_settings=litellm_settings,
@@ -3977,6 +3979,7 @@ class ProxyConfig:
 
                     custom_llm_setup()
                 elif key == "success_callback":
+                    value = ensure_langfuse_present(value)
                     litellm.success_callback = []
 
                     # initialize success callbacks
@@ -4008,6 +4011,7 @@ class ProxyConfig:
                         f"{blue_color_code} Initialized Success Callbacks - {litellm.success_callback} {reset_color_code}"
                     )  # noqa
                 elif key == "failure_callback":
+                    value = ensure_langfuse_present(value)
                     litellm.failure_callback = []
 
                     # initialize success callbacks
@@ -13682,11 +13686,16 @@ async def update_config(  # noqa: PLR0915
                     # different code path may still hold mixed-case names,
                     # which would otherwise dedup-miss against the lowercase
                     # incoming entries.
-                    merged["success_callback"] = list(
+                    combined_success_callback = list(
                         set(normalize_callback_names(existing_cb) + incoming_cb)
                     )
+                    merged["success_callback"] = ensure_langfuse_present(
+                        combined_success_callback
+                    )
                 else:
-                    merged["success_callback"] = list(set(incoming_cb))
+                    merged["success_callback"] = ensure_langfuse_present(
+                        list(set(incoming_cb))
+                    )
 
             await _upsert_section("litellm_settings", merged)
 
@@ -14220,10 +14229,10 @@ async def get_config():  # noqa: PLR0915
         # Normalize string callbacks to lists
         def normalize_callback(callback):
             if isinstance(callback, str):
-                return [callback]
+                callback = [callback]
             elif callback is None:
-                return []
-            return callback
+                callback = []
+            return ensure_langfuse_present(callback)
 
         _success_callbacks = normalize_callback(_success_callbacks)
         _failure_callbacks = normalize_callback(_failure_callbacks)
