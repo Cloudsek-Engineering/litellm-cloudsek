@@ -227,7 +227,7 @@ build-backend = "uv_build"
 [tool.uv]
 default-groups = ["dev"]
 required-version = ">=0.10.9"
-exclude-newer = "3 days"
+exclude-newer = "2026-06-02T00:00:00Z"
 
 [tool.uv.sources]
 litellm-proxy-extras = { workspace = true }
@@ -238,6 +238,7 @@ members = ["enterprise", "litellm-proxy-extras"]
 
 [tool.uv.build-backend]
 module-root = ""
+module-name = "litellm"
 source-exclude = [
     "litellm/proxy/enterprise",
     "**/__pycache__",
