@@ -222,13 +222,15 @@ def supports_response_json_schema(model: str) -> bool:
     Returns:
         True if the model supports responseJsonSchema, False otherwise
     """
-    model_lower = model.lower()
+    # model_lower = model.lower()
 
-    # Gemini 2.0+ and 2.5+ models support responseJsonSchema
-    # Pattern matches: gemini-2.0-*, gemini-2.5-*, gemini-3-*, etc.
-    gemini_2_plus_pattern = re.compile(r"gemini-([2-9]|[1-9]\d+)\.")
+    # # Gemini 2.0+ and 2.5+ models support responseJsonSchema
+    # # Pattern matches: gemini-2.0-*, gemini-2.5-*, gemini-3-*, etc.
+    # gemini_2_plus_pattern = re.compile(r"gemini-([2-9]|[1-9]\d+)\.")
 
-    return bool(gemini_2_plus_pattern.search(model_lower))
+    # return bool(gemini_2_plus_pattern.search(model_lower))
+
+    return False
 
 
 from typing import Literal, Optional
